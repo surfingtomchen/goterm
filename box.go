@@ -2,6 +2,7 @@ package goterm
 
 import (
 	"bytes"
+	runewidth "github.com/mattn/go-runewidth"
 	"strings"
 )
 
@@ -50,7 +51,7 @@ func NewBox(width, height int, flags int) *Box {
 	box.Width = width
 	box.Height = height
 	box.Border = DEFAULT_BORDER
-	box.PaddingX = 1
+	box.PaddingX = 0
 	box.PaddingY = 0
 	box.Flags = flags
 
@@ -99,12 +100,15 @@ func (b *Box) String() (out string) {
 				line = ""
 			}
 
-			if len(line) > contentWidth-1 {
+			if runewidth.StringWidth(line) > contentWidth-1 {
 				// If line is too large limit it
 				line = line[0:contentWidth]
 			} else {
 				// If line is too small enlarge it by adding spaces
-				line = line + strings.Repeat(" ", contentWidth-len(line))
+				blanks := contentWidth - runewidth.StringWidth(line)
+				leftBlank := blanks / 2
+				rightBlank := blanks - leftBlank
+				line = strings.Repeat(" ", leftBlank) + line + strings.Repeat(" ", rightBlank)
 			}
 
 			line = prefix + line + suffix
